@@ -1,4 +1,8 @@
 
+create database lojadoSavio;
+
+use lojadoSavio;
+
 -- Criação das tabelas
 CREATE TABLE Cliente (
     id INT PRIMARY KEY IDENTITY,
@@ -162,3 +166,172 @@ INSERT INTO Manutencao (produto_id, data, descricao) VALUES
 (16, '2024-04-05', 'Troca de compressor'),
 (17, '2024-04-10', 'Reparo de motor'),
 (18, '2024-04-15', 'Reparo de estrutura');
+
+--1  Escreva uma consulta para listar todos os clientes e os pedidos que fizeram
+
+SELECT * from Cliente as c
+INNER JOIN Pedido as p
+ON c.id = p.cliente_id
+
+--2. Escreva uma consulta para listar todos os pedidos e os produtos que foram incluídos em cada pedido.
+SELECT pe.id ,pr.nome, ItemPedido.id
+FROM Pedido as pe 
+INNER JOIN ItemPedido
+on pe.id = ItemPedido.id
+INNER JOIN Produto as pr
+on ItemPedido.produto_id = pr.id
+
+--3. Escreva uma consulta para listar todos os produtos e suas respectivas categorias e fornecedores.
+SELECT * from Produto
+inner join Categoria
+on Produto.categoria_id = Categoria.id
+inner join Fornecedor 
+on Produto.fornecedor_id = Fornecedor.id
+
+--4. Escreva uma consulta para listar todos os produtos que não estão associados a nenhuma categoria.
+SELECT * FROM Produto AS P
+INNER JOIN Categoria AS C
+ON P.categoria_id = C.id
+WHERE C.nome IS NULL;
+
+--5  Escreva uma consulta para listar todos os clientes que fizeram compras em janeiro de 2024
+SELECT * FROM Cliente AS C
+INNER JOIN Pedido AS P 
+ON C.id = P.cliente_id
+WHERE P.data_pedido LIKE '2024-01%'
+
+--6 6. Escreva uma consulta para listar todos os produtos comprados pelo cliente com o nome 'João Silva'.
+SELECT p.nome, c.nome, pe.data_pedido FROM Produto as p
+INNER JOIN ItemPedido as item
+on item.produto_id = p.id
+inner join Pedido as pe 
+on pe.id = pedido_id	
+inner join Cliente as c
+on c.id =  pe.cliente_id
+where c.nome = 'João Silva'
+
+--7. Escreva uma consulta para listar todos os pedidos com produtos e quantidades, ordenados pela data do pedido.
+SELECT Produto.nome, ItemPedido.quantidade, Cliente.nome, Pedido.data_pedido
+from Produto
+inner join ItemPedido 
+on ItemPedido.produto_id = produto_id
+inner join Pedido
+on pedido_id = ItemPedido.pedido_id
+inner join Cliente
+on cliente_id = Pedido.cliente_id
+ORDER BY Pedido.data_pedido asc
+
+--8. Escreva uma consulta para listar todos os produtos e a quantidade de pedidos em que foram incluídos.
+SELECT Produto.nome, COUNT(ItemPedido.id) AS QUANTIDADEPEDIDOS
+FROM Produto
+INNER JOIN ItemPedido 
+ON produto_id = ItemPedido.produto_id
+group by Produto.nome
+
+--9. Escreva uma consulta para listar todos os fornecedores que fornecem produtos com preço superior a 500.
+SELECT Fornecedor.nome as NomeFornecedor , Produto.nome as Produto , Produto.preco
+from Produto
+inner join Fornecedor
+on fornecedor_id = Produto.fornecedor_id
+where Produto.preco > 500
+
+--10. Escreva uma consulta para listar todos os produtos que não foram incluídos em nenhum pedido.
+SELECT Produto.nome
+from Produto
+left join ItemPedido
+on produto_id = ItemPedido.produto_id
+where pedido_id is null 
+
+--11. Escreva uma consulta para listar todos os produtos e as manutenções realizadas em cada um.
+SELECT Produto.nome, Manutencao.produto_id, Manutencao.data, Manutencao.descricao
+from Produto
+inner join Manutencao
+on Manutencao.produto_id = Produto.id
+
+--12. Escreva uma consulta para listar todos os produtos que têm quantidade em estoque e preço acima de 100.
+SELECT Produto.nome, Produto.quantidade_estoque, Produto.preco
+from Produto
+where preco > 100 and Produto.quantidade_estoque > 0
+
+--13. Escreva uma consulta para listar todos os clientes que fizeram pedidos no mês de janeiro de 2024
+SELECT * FROM Cliente AS C
+INNER JOIN Pedido AS P 
+ON C.id = P.cliente_id
+WHERE P.data_pedido LIKE '2024-01%'
+
+--14. Escreva uma consulta para listar todos os produtos que pertencem às categorias 'Eletrônicos' e 'Roupas'.
+select Produto.nome , Categoria.nome
+from Produto
+inner join Categoria 
+on categoria_id = Produto.categoria_id
+where Categoria.nome = 'Eletrônicos' OR Categoria.nome = 'Roupas'
+
+--15. Escreva uma consulta para listar todos os produtos que não foram fornecidos pelo fornecedor com o nome 'Fornecedor B'.
+select Produto.nome, Fornecedor.nome
+from Produto
+inner join Fornecedor 
+on Produto.fornecedor_id = fornecedor_id
+where Fornecedor.nome != 'Fornecedor B'
+
+--16. Escreva uma consulta para listar o produto mais caro de cada categoria. -- DÚVIDA -- PEDIR AO PROFESSOR
+SELECT Produto.nome AS Produto, Categoria.nome AS Categoria, Produto.preco AS Preco
+FROM Produto
+INNER JOIN Categoria 
+ON Produto.categoria_id = Categoria.id
+WHERE Produto.preco = (
+    SELECT MAX(p.preco)
+    FROM Produto p
+    WHERE p.categoria_id = Produto.categoria_id
+);
+
+--17. Escreva uma consulta para listar todos os clientes que não fizeram pedidos no último mês. -- DÚVIDA -- PEDIR AO PROFESSOR
+SELECT Cliente.nome, Pedido.data_pedido as DataUltimoPedido
+from Cliente
+inner join Pedido
+on Cliente.id = Pedido.cliente_id
+where Pedido.data_pedido < 
+
+--18 Escreva uma consulta para listar os pedidos que contêm mais de 3 produtos.
+SELECT Pedido.id, COUNT(ItemPedido.produto_id) AS QUANTIDADEPRODUTOS
+from Pedido
+inner join ItemPedido 
+on Pedido.id = ItemPedido.pedido_id
+group by Pedido.id
+having COUNT(ItemPedido.produto_id) > 3
+
+--19. Escreva uma consulta para listar todos os produtos que foram comprados por todos os clientes. -- duvida 
+SELECT Produto.nome
+FROM Produto
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM Cliente
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM Pedido
+        INNER JOIN ItemPedido ON Pedido.id = ItemPedido.pedido_id
+        WHERE ItemPedido.produto_id = Produto.id
+        AND Pedido.cliente_id = Cliente.id
+    )
+);
+
+--20. Escreva uma consulta para listar todos os produtos que não têm manutenção registrada
+SELECT Produto.nome
+FROM Produto
+inner join Manutencao on Manutencao.produto_id = Produto.id
+where Manutencao.produto_id is null
+
+--21 21. Escreva uma consulta para listar todos os pedidos com o total gasto em cada um.
+SELECT Pedido.id AS PedidoID, SUM(ItemPedido.quantidade * Produto.preco) AS TotalGasto
+FROM Pedido
+INNER JOIN ItemPedido ON Pedido.id = ItemPedido.pedido_id
+INNER JOIN Produto ON ItemPedido.produto_id = Produto.id
+GROUP BY Pedido.id;
+
+--22. Quantidade total de produtos vendidos por categoria
+
+SELECT Categoria.nome AS CategoriaNome, SUM(ItemPedido.quantidade) AS QuantidadeTotalVendida
+FROM Categoria
+INNER JOIN Produto ON Categoria.id = Produto.categoria_id
+INNER JOIN ItemPedido ON Produto.id = ItemPedido.produto_id
+INNER JOIN Pedido ON ItemPedido.pedido_id = Pedido.id
+GROUP BY Categoria.nom
